@@ -1,0 +1,30 @@
+Lista de possíveis coisas para otimizar o algoritmo:
+1)1. Otimização por "Chunking" (Processamento em Blocos)
+A forma mais simples e robusta de otimizar para sistemas embarcados é dividir o buffer de 4KB em blocos pequenos (ex: 8 a 10 bytes).
+
+Por que isso é bom?
+
+Resolve o Erro: Impede que o double perca a precisão.
+
+Baixa Latência: Em sistemas reais, você pode começar a transmitir o primeiro bloco via UART enquanto ainda processa o segundo.
+
+Memória: Mantém o uso das suas estruturas estáticas de 8KB.
+
+Como ficaria o código:
+Você alteraria o seu encode para retornar um array de double (ou imprimir um por bloco) e o decode processaria cada bloco separadamente.
+
+2)Otimização de Precisão: Usando long double
+No seu Zorin OS (PC), o double tem 64 bits. Você pode ganhar fôlego extra mudando para long double (80 ou 128 bits, dependendo da arquitetura).
+
+No arithmetic.h e .c:
+Substitua todos os double por long double. Isso deve fazer a frase "Sistemas Embarcados" passar com folga, pois aumenta significativamente o número de casas decimais antes da colisão.
+
+3) Otimização de Performance: Tabela de Busca (LUT)
+Atualmente, seu laço interno percorre a tabela de 0 a 255. Podemos otimizar o tempo de CPU (interessante para o critério de "Grau de Dificuldade") criando uma Tabela de Índices.
+
+4) O "Trade-off" de Energia
+Em sistemas embarcados, a compressão é usada para economizar bateria.
+
+Enviar 1 bit via rádio (Wi-Fi, Bluetooth, LoRa) gasta muito mais energia do que executar 100 instruções na CPU.
+
+A conta é simples: Se o seu algoritmo gastar 1000 ciclos de clock para comprimir um dado pela metade, você economizou 50% de energia na transmissão, o que pode fazer um sensor de campo durar 2 anos em vez de 1.
