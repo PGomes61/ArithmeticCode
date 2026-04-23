@@ -1,56 +1,72 @@
+/**
+ * Núcleo da codificação aritmética em ponto flutuante (demonstração).
+ * Intervalo inicial [0, 1); a cada símbolo o intervalo atual é repartido
+ * proporcionalmente às probabilidades cumulativas.
+ */
 #include "arithmetic.h"
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <sys/types.h>
 
-// Definições de tamanho conforme o requisito do trabalho
-#define MAX_BUFFER 4096
-#define SYMBOL_COUNT 256
+static long double cum_prob[SYMBOL_COUNT + 1];
 
-// Estruturas de dados estáticas
-static float cum_prob[SYMBOL_COUNT + 1];
-static uint8_t internal_buffer[MAX_BUFFER];
-
-void build_cumulative_table(const float *freq) {
-    cum_prob[0] = 0.0f;
+void build_cumulative_table(const double *freq) {
+    cum_prob[0] = 0.0L;
     for (int i = 0; i < SYMBOL_COUNT; i++) {
-        cum_prob[i + 1] = cum_prob[i] + freq[i];
+        cum_prob[i + 1] = cum_prob[i] + (long double)freq[i];
     }
 }
 
-double encode (const uint8_t *input, int length) {
-    double low = 0.0;
-    double high = 1.0;
+long double encode(const uint8_t *input, size_t length) {
+    if (input == NULL || length == 0U) {
+        return 0.0L;
+    }
 
-    // Laço externo: percorre cada símbolo do buffer de entrada (O(n))
-    for (int i = 0; i < length; i++) {
+    long double low = 0.0L;
+    long double high = 1.0L;
+
+    for (size_t i = 0; i < length; i++) {
         uint8_t symbol = input[i];
-        double range = high - low;
+        long double range = high - low;
+        long double new_low = low + range * cum_prob[symbol];
+        long double new_high = low + range * cum_prob[symbol + 1];
+        low = new_low;
+        high = new_high;
+    }
 
-        // Laço interno: percorre a tabela cumulativa (O(k))
-        // Este laço atende ao requisito de "determinar o subintervalo correspondente"
+    return low;
+}
+
+void decode(long double value, uint8_t *output, size_t length) {
+    if (output == NULL || length == 0U) {
+        return;
+    }
+
+    if (value >= 1.0L) {
+        value = nextafterl(1.0L, 0.0L);
+    }
+    if (value < 0.0L) {
+        value = 0.0L;
+    }
+
+    for (size_t i = 0; i < length; i++) {
+        int found = 0;
         for (int s = 0; s < SYMBOL_COUNT; s++) {
-            if (s == symbol) {
-                high = low + range * cum_prob[s + 1];
-                low = low + range * cum_prob[s];
+            long double lo = cum_prob[s];
+            long double hi = cum_prob[s + 1];
+            if (value >= lo && value < hi) {
+                output[i] = (uint8_t)s;
+                long double range = hi - lo;
+                if (range <= 0.0L) {
+                    return;
+                }
+                value = (value - lo) / range;
+                found = 1;
                 break;
             }
         }
-    }
-    return low; // O número real que representa a sequência
-}
-
-void decode(double value, uint8_t *output, int length) {
-    for (int i = 0; i < length; i++) {
-        for (int s = 0; s < SYMBOL_COUNT; s++) {
-            if (value >= cum_prob[s] && value < cum_prob[s + 1]) {
-                output[i] = (uint8_t)s;
-
-                // Atualiza o valor para o próximo símbolo
-                double range = cum_prob[s + 1] - cum_prob[s];
-                value = (value - cum_prob[s]) / range;
-                break;
-            }
+        if (!found) {
+            return;
         }
     }
 }
