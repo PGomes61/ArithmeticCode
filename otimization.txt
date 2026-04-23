@@ -28,3 +28,5 @@ Em sistemas embarcados, a compressão é usada para economizar bateria.
 Enviar 1 bit via rádio (Wi-Fi, Bluetooth, LoRa) gasta muito mais energia do que executar 100 instruções na CPU.
 
 A conta é simples: Se o seu algoritmo gastar 1000 ciclos de clock para comprimir um dado pela metade, você economizou 50% de energia na transmissão, o que pode fazer um sensor de campo durar 2 anos em vez de 1.
+
+5)
