@@ -1,64 +1,100 @@
 #include "unity.h"
-#include "arithmetic.h"
 #include "utils.h"
+#include "arithmetic.h"
+#include <stdint.h>
+#include <string.h>
 
-// Função que roda ANTES de cada teste
+static uint8_t s_tests_decoded[MAX_BUFFER];
+static uint8_t s_tests_large_input[MAX_BUFFER];
+
 void setUp(void) {}
 
-// Função que roda DEPOIS de cada teste
 void tearDown(void) {}
 
-// CASO 1: Redundância Máxima
-void test_GoldenReference_Redundancy(void) {
-    uint8_t input[] = "AAAAAAAA";
-    float freq[SYMBOL_COUNT] = {0};
-    prepare_test(input, 8, freq);
-    build_cumulative_table(freq);
-
-    double expected = 0.0; // Em redundância total, o intervalo não se move do zero
-    double result = encode(input, 8);
-
-    TEST_ASSERT_EQUAL_DOUBLE(expected, result);
+static void assert_round_trip(const uint8_t *input, int length) {
+    size_t packed = 0;
+    int rc = codec_roundtrip(input, length, s_tests_decoded, sizeof(s_tests_decoded), &packed);
+    TEST_ASSERT_EQUAL_INT(0, rc);
+    TEST_ASSERT_GREATER_THAN(0u, packed);
 }
 
-// CASO 2: Simetria Perfeita (50/50)
-void test_GoldenReference_Symmetry(void) {
-    uint8_t input[] = "ABAB";
-    float freq[SYMBOL_COUNT] = {0};
-    prepare_test(input, 4, freq);
-    build_cumulative_table(freq);
-
-    double expected = 0.3125; // Valor teórico exato para ABAB
-    double result = encode(input, 4);
-
-    TEST_ASSERT_DOUBLE_WITHIN(1e-12, expected, result);
+void test_round_trip_empty(void) {
+    const uint8_t input[] = "";
+    assert_round_trip(input, 0);
 }
 
-// CASO 3: O Clássico (BANANA)
-void test_GoldenReference_Banana(void) {
-    uint8_t input[] = "BANANA";
-    float freq[SYMBOL_COUNT] = {0};
-    prepare_test(input, 6, freq);
-    build_cumulative_table(freq);
+void test_round_trip_single_byte(void) {
+    const uint8_t input[] = {0x42};
+    assert_round_trip(input, 1);
+}
 
-    double expected = 0.564814814814815;
-    double result = encode(input, 6);
+void test_round_trip_sixteen_bytes(void) {
+    const uint8_t input[] = "0123456789ABCDEF";
+    assert_round_trip(input, 16);
+}
 
-    // Epsilon de 1e-8 para acomodar o arredondamento da FPU
-    TEST_ASSERT_DOUBLE_WITHIN(1e-8, expected, result);
+void test_round_trip_long_phrase(void) {
+    const uint8_t input[] = "Compressao Aritmetica eh Top";
+    assert_round_trip(input, (int)strlen((const char *)input));
+}
+
+void test_round_trip_high_redundancy(void) {
+    uint8_t input[200];
+    memset(input, 'Z', sizeof(input));
+    assert_round_trip(input, (int)sizeof(input));
+}
+
+void test_round_trip_binary_pattern(void) {
+    uint8_t input[64];
+    for (int i = 0; i < 64; i++) {
+        input[i] = (uint8_t)(i * 17 + 3);
+    }
+    assert_round_trip(input, (int)sizeof(input));
+}
+
+void test_round_trip_one_kilobyte(void) {
+    uint8_t input[1024];
+    for (int i = 0; i < 1024; i++) {
+        input[i] = (uint8_t)((i * 131u + 7u) & 0xFFu);
+    }
+    assert_round_trip(input, (int)sizeof(input));
+}
+
+void test_round_trip_scaled_frequencies(void) {
+    uint8_t input[25000];
+    memset(input, 'M', sizeof(input));
+    assert_round_trip(input, (int)sizeof(input));
+}
+
+void test_round_trip_max_buffer(void) {
+    int length = 0;
+    fill_demo_buffer_8k(s_tests_large_input, &length);
+    TEST_ASSERT_EQUAL_INT((int)MAX_BUFFER, length);
+
+    size_t packed = 0;
+    int rc =
+        codec_roundtrip(s_tests_large_input, length, s_tests_decoded, sizeof(s_tests_decoded), &packed);
+    TEST_ASSERT_EQUAL_INT(0, rc);
+    TEST_ASSERT_GREATER_THAN(ARITH_HEADER_BYTES, packed);
 }
 
 void run_unity_tests(void) {
-    printf("\n--- FASE 1: CERTIFICACAO (Referencia de Ouro) ---\n\n");
+    printf("\n--- TESTES Unity (round-trip) ---\n\n");
     UNITY_BEGIN();
-    RUN_TEST(test_GoldenReference_Redundancy);
-    RUN_TEST(test_GoldenReference_Symmetry);
-    RUN_TEST(test_GoldenReference_Banana);
+    RUN_TEST(test_round_trip_empty);
+    RUN_TEST(test_round_trip_single_byte);
+    RUN_TEST(test_round_trip_sixteen_bytes);
+    RUN_TEST(test_round_trip_long_phrase);
+    RUN_TEST(test_round_trip_high_redundancy);
+    RUN_TEST(test_round_trip_binary_pattern);
+    RUN_TEST(test_round_trip_one_kilobyte);
+    RUN_TEST(test_round_trip_scaled_frequencies);
+    RUN_TEST(test_round_trip_max_buffer);
     int status = UNITY_END();
 
     if (status == 0) {
-        printf("STATUS: [ OK ] - Motor matematico validado.\n");
+        printf("STATUS: [ OK ] - Todos os testes passaram.\n");
     } else {
-        printf("STATUS: [ ATENCAO ] - Divergencia de hardware detectada.\n");
+        printf("STATUS: [ FALHA ] - Ver mensagens acima.\n");
     }
 }

@@ -4,14 +4,22 @@
 #include <stdint.h>
 #include "arithmetic.h"
 
-/**
- * @brief Calcula frequências e prepara a tabela cumulativa baseada num input.
- */
-void prepare_test(const uint8_t *input, int length, float *freq);
+void prepare_counts(const uint8_t *input, int length, uint16_t counts[SYMBOL_BYTE_COUNT]);
 
 /**
- * @brief Executa um ciclo completo de Encode/Decode e valida os dados.
+ * Unico caminho de codificacao/decodificacao: contagens -> modelo -> compress -> decompress.
+ * Compara com memcmp. Retorna 0 em sucesso; -1 compressao invalida; -2 descompressao; -3 dados
+ * diferentes; -4 argumentos invalidos; -5 ponteiros nulos.
  */
-void run_test(const char *label, const char *test_string);
+int codec_roundtrip(const uint8_t *input, int length, uint8_t *decoded_out, size_t decoded_cap,
+                    size_t *packed_bytes_out);
 
-#endif // UTILS_H
+void fill_demo_buffer_8k(uint8_t *buffer, int *length);
+
+/**
+ * Lê até MAX_BUFFER bytes do ficheiro, comprime, descomprime e imprime o resultado no stdout.
+ * Retorna 0 em sucesso, -1 se não abrir o ficheiro, -2 se compressão/descompressão falhar.
+ */
+int run_from_file(const char *path);
+
+#endif

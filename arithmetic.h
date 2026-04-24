@@ -1,43 +1,50 @@
 #ifndef ARITHMETIC_H
 #define ARITHMETIC_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /**
- * @file arithmetic.h
- * @author Paulo Vinicius Holanda Gomes & Pedro Lucas Coutinho de Araujo
- * @brief Definições e protótipos para Codificação Aritmética (T1 - Sistemas Embarcados)
+ * Codificação aritmética em ponto fixo 16 bits com renormalização WNC (bitstream).
+ * Sem malloc e sem recursão.
+ *
+ * Limite da mensagem (MAX_BUFFER): podes aumentar se tiveres RAM para os buffers
+ * estáticos (ver MAX_COMPRESSED_BYTES). O cabeçalho guarda n em 32 bits (teórico até ~4 GiB).
+ * O modelo WNC exige soma das frequencias escaladas <= WNC_FREQUENCY_TOTAL_MAX; mensagens
+ * maiores sao aceites porque as contagens sao escaladas automaticamente.
  */
+#define WNC_FREQUENCY_TOTAL_MAX ((1u << 14) - 1u)
 
-/* --- Definições de Tamanho --- */
-/* 7164 (buffer) + 1028 (tabela cum_prob) = 8192 bytes = 8KB */
-#define MAX_BUFFER      7164
-#define SYMBOL_COUNT    2048   // Quantidade de símbolos (0-255)
+#ifndef MAX_BUFFER
+#define MAX_BUFFER (1u << 20)
+#endif
 
-/* --- Protótipos das Funções --- */
+#define SYMBOL_BYTE_COUNT    256
 
-/**
- * @brief Transforma a tabela de frequências simples em uma tabela cumulativa.
- * @param freq Ponteiro para um array de 2048 floats contendo as frequências de cada símbolo.
- * A soma das frequências deve ser 1.0.
- */
-void build_cumulative_table(const float *freq);
+#define ARITH_HEADER_BYTES   (sizeof(uint32_t) + SYMBOL_BYTE_COUNT * sizeof(uint16_t))
 
-/**
- * @brief Codifica uma sequência de bytes em um único número real (double).
- * @param input Ponteiro para o buffer de dados originais.
- * @param length Quantidade de bytes a serem codificados.
- * @return double O "tag" ou valor real que representa a mensagem no intervalo [0, 1).
- */
-double encode(const uint8_t *input, int length);
+#define MAX_COMPRESSED_BYTES (ARITH_HEADER_BYTES + (MAX_BUFFER * 2u) + 1048576u)
 
-/**
- * @brief Decodifica um valor real de volta para o buffer de bytes original.
- * @param value O valor real codificado.
- * @param output Ponteiro para o buffer onde os dados reconstruídos serão salvos.
- * @param length O número esperado de bytes na mensagem original.
- */
-void decode(double value, uint8_t *output, int length);
+typedef struct {
+    uint32_t cum[SYMBOL_BYTE_COUNT + 1];
+    uint32_t total;
+} ArithmeticModel;
 
-#endif // ARITHMETIC_H
+void arithmetic_count_raw(const uint8_t *data, int length, uint32_t raw_counts[SYMBOL_BYTE_COUNT]);
+
+void arithmetic_scale_counts_for_wnc(const uint32_t *raw_counts, int message_length,
+                                     uint16_t scaled_counts[SYMBOL_BYTE_COUNT]);
+
+void arithmetic_count_symbols(const uint8_t *data, int length, uint16_t counts[SYMBOL_BYTE_COUNT]);
+
+void arithmetic_model_from_counts(const uint16_t counts[SYMBOL_BYTE_COUNT], ArithmeticModel *model);
+
+void arithmetic_build_model_from_data(const uint8_t *data, int length, ArithmeticModel *model);
+
+size_t arithmetic_compress(const uint8_t *input, int length, const ArithmeticModel *model,
+                           uint8_t *out, size_t out_cap);
+
+int arithmetic_decompress(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_cap,
+                          uint32_t *out_length);
+
+#endif
