@@ -13,7 +13,7 @@
 /* --- Definições de Tamanho --- */
 /* 7164 (buffer) + 1028 (tabela cum_prob) = 8192 bytes = 8KB */
 #define MAX_BUFFER      7164
-#define SYMBOL_COUNT    2047   // Quantidade de símbolos (0-255)
+#define SYMBOL_COUNT    2048   // Quantidade de símbolos (0-255)
 
 /* --- Protótipos das Funções --- */
 
