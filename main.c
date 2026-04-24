@@ -22,10 +22,10 @@ int main(void) {
 
     // 3. Caso do Abismo de Precisão (Onde o 'Underflow' acontece)
     // Esta frase tem 25 caracteres. O double vai colapsar por volta do 16º.
-    run_test("Abismo de Precisao", "Compressao Aritmetica e Top");
+    run_test("Abismo de Precisao", "Compressao Aritmetica eh Top");
 
     printf("\n=========================================\n");
-    printf("Dica para a Banca: O erro no ultimo caso ocorre devido\n");
+    printf("O erro no ultimo caso ocorre devido\n");
     printf("ao limite de 52 bits da mantissa do tipo double.\n");
     printf("=========================================\n");
 

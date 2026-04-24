@@ -3,11 +3,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-// Estruturas de dados estáticas - Total: 8192 bytes (8KB)
-// cum_prob: 257 * 4 bytes = 1028 bytes
+// Estruturas de dados estáticas
+// cum_prob: 2048 * 4 bytes = 8192 bytes = 8 KB
 static float cum_prob[SYMBOL_COUNT + 1];
-// internal_buffer: 7164 * 1 byte = 7164 bytes
-static uint8_t internal_buffer[MAX_BUFFER];
 
 void build_cumulative_table(const float *freq) {
     cum_prob[0] = 0.0f;

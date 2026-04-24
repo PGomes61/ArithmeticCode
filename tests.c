@@ -44,7 +44,7 @@ void test_GoldenReference_Banana(void) {
     double expected = 0.564814814814815;
     double result = encode(input, 6);
 
-    // Epsilon de 1e-8 para acomodar o arredondamento da FPU do seu ASUS
+    // Epsilon de 1e-8 para acomodar o arredondamento da FPU
     TEST_ASSERT_DOUBLE_WITHIN(1e-8, expected, result);
 }
 

@@ -13,13 +13,13 @@
 /* --- Definições de Tamanho --- */
 /* 7164 (buffer) + 1028 (tabela cum_prob) = 8192 bytes = 8KB */
 #define MAX_BUFFER      7164
-#define SYMBOL_COUNT    256    // Quantidade de símbolos (0-255)
+#define SYMBOL_COUNT    2047   // Quantidade de símbolos (0-255)
 
 /* --- Protótipos das Funções --- */
 
 /**
  * @brief Transforma a tabela de frequências simples em uma tabela cumulativa.
- * @param freq Ponteiro para um array de 256 floats contendo as frequências de cada símbolo.
+ * @param freq Ponteiro para um array de 2048 floats contendo as frequências de cada símbolo.
  * A soma das frequências deve ser 1.0.
  */
 void build_cumulative_table(const float *freq);
