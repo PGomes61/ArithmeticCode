@@ -1,50 +1,53 @@
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
+#include "unity.h"
 #include "arithmetic.h"
 #include "utils.h"
 
-#define MAX_TEST_STRING 32 // Define um teto para as strings de teste
+// Função que roda ANTES de cada teste
+void setUp(void) {}
 
-typedef struct {
-    uint8_t input[MAX_TEST_STRING]; // Array fixo em vez de ponteiro
-    int length;                     // Tamanho real ocupado
-    double expected_gold;           // Valor de referência
-} GoldenTestCase;
+// Função que roda DEPOIS de cada teste
+void tearDown(void) {}
 
-// Tabela de Referência de Ouro
-// Inicialização "Blindada":
-GoldenTestCase golden_table[] = {
-    {
-        .input = "AAAAABBB",
-        .length = 8,
-        .expected_gold = 0.090338289737701
-    },
-    {
-        .input = "BANANA",
-        .length = 6,
-        .expected_gold = 0.564814823921080
-    }
-};
+void test_GoldenReference_AAAAABBB(void) {
+    uint8_t input[] = "AAAAABBB";
+    float freq[256];
+    prepare_test(input, 8, freq);
+    build_cumulative_table(freq);
 
-void run_certification_tests() {
-    printf("\n=== INICIANDO CERTIFICACAO DE REFERENCIA DE OURO ===\n");
+    double expected = 0.090338289737701;
+    double result = encode(input, 8);
 
-    for (int i = 0; i < 2; i++) {
-        float freq[256];
-        prepare_test((uint8_t*)golden_table[i].input, strlen((const char*)golden_table[i].input), freq);
-        build_cumulative_table(freq);
+    // O Unity tem uma macro específica para comparar doubles com margem de erro (Epsilon)
+    TEST_ASSERT_DOUBLE_WITHIN(1e-12, expected, result);
+}
 
-        double result = encode((uint8_t*)golden_table[i].input, strlen((const char*)golden_table[i].input));
+void test_GoldenReference_BANANA(void) {
+    uint8_t input[] = "BANANA";
+    float freq[256];
+    prepare_test(input, 6, freq);
+    build_cumulative_table(freq);
 
-        printf("Teste [%s]:\n", golden_table[i].input);
-        printf("  Obtido:   %.15f\n", result);
-        printf("  Esperado: %.15f\n", golden_table[i].expected_gold);
+    // Valor teórico calculado manualmente
+    double expected = 0.564814814814815;
+    double result = encode(input, 6);
 
-        if (fabs(result - golden_table[i].expected_gold) < 1e-12) {
-            printf("  STATUS: [PASS] - Alinhado com a Referencia de Ouro.\n");
-        } else {
-            printf("  STATUS: [FAIL] - Divergencia matematica detectada!\n");
-        }
+    TEST_ASSERT_DOUBLE_WITHIN(1e-12, expected, result);
+}
+
+void run_unity_tests(void) {
+    printf("\n--- FASE 1: CERTIFICACAO (Referencia de Ouro) ---\n");
+    printf("Status esperado: [PASS]\n");
+    printf("-------------------------------------------------\n");
+
+    UNITY_BEGIN();
+    RUN_TEST(test_GoldenReference_AAAAABBB);
+    RUN_TEST(test_GoldenReference_BANANA);
+    int status = UNITY_END(); // O UNITY_END retorna 0 se tudo passar
+
+    printf("-------------------------------------------------\n");
+    if (status == 0) {
+        printf("RESULTADO: [ OK ] - Algoritmo validado com sucesso.\n");
+    } else {
+        printf("RESULTADO: [ ATENCAO ] - Divergencia de precisao detectada.\n");
     }
 }

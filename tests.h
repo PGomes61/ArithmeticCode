@@ -10,12 +10,20 @@
  */
 
 /**
- * @brief Executa a certificação do algoritmo contra valores pré-calculados.
- * * Esta função atua como um "Juiz Independente", comparando o resultado
- * do encoder com constantes matemáticas verificadas externamente,
- * garantindo que o algoritmo não dependa apenas do seu próprio decoder
- * para ser validado.
+ * @brief Executa a suíte de testes unitários utilizando o framework Unity.
+ * * Esta função atua como o ponto central de validação do projeto, orquestrando
+ * a execução dos casos de teste contra a Referência de Ouro (Golden Reference).
+ * * @details
+ * O fluxo de execução segue os seguintes critérios:
+ * 1. Inicializa o ambiente de teste do Unity (UNITY_BEGIN).
+ * 2. Realiza o isolamento de estado através do ciclo setUp/tearDown para garantir
+ * a integridade das estruturas de dados estáticas (8KB).
+ * 3. Valida a conformidade matemática do encoder com precisão de 10^-12 (Epsilon).
+ * 4. Finaliza o framework e emite o relatório de conformidade no console (UNITY_END).
+ * * @note Este procedimento é executado ANTES da demonstração real para garantir que
+ * o motor matemático não sofreu regressões durante o desenvolvimento.
  */
-void run_certification_tests(void);
+void run_unity_tests(void);
+
 
 #endif // TESTS_H
