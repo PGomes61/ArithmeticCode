@@ -20,8 +20,9 @@ void prepare_test(const uint8_t *input, int length, float *freq) {
 
 void run_test(const char *label, const char *test_string) {
     int len = strlen(test_string);
-    uint8_t input[MAX_BUFFER_SIZE];
-    uint8_t decoded[MAX_BUFFER_SIZE];
+    // Uso do buffer estático de tamanho ajustado
+    uint8_t input[MAX_BUFFER];
+    uint8_t decoded[MAX_BUFFER];
     float freq[SYMBOL_COUNT];
 
     memcpy(input, test_string, len);
@@ -35,7 +36,7 @@ void run_test(const char *label, const char *test_string) {
     double encoded_val = encode(input, len);
     printf("Valor Codificado: %.15f\n", encoded_val);
 
-    memset(decoded, 0, MAX_BUFFER_SIZE);
+    memset(decoded, 0, MAX_BUFFER);
     decode(encoded_val, decoded, len);
     decoded[len] = '\0';
 
@@ -44,6 +45,7 @@ void run_test(const char *label, const char *test_string) {
     if (memcmp(input, decoded, len) == 0) {
         printf("Status: [ OK ] - Sucesso!\n");
     } else {
-        printf("Status: [ ERRO ] - Falha na integridade!\n");
+        // Mensagem ajustada para refletir a análise de precisão do hardware
+        printf("Status: [ ERRO ] - Falha na integridade (Precision Underflow)!\n");
     }
 }

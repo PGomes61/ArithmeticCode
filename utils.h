@@ -14,4 +14,4 @@ void prepare_test(const uint8_t *input, int length, float *freq);
  */
 void run_test(const char *label, const char *test_string);
 
-#endif
+#endif // UTILS_H

@@ -3,12 +3,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-// Definições de tamanho conforme o requisito do trabalho
-#define MAX_BUFFER 4096
-#define SYMBOL_COUNT 256
-
-// Estruturas de dados estáticas
+// Estruturas de dados estáticas - Total: 8192 bytes (8KB)
+// cum_prob: 257 * 4 bytes = 1028 bytes
 static float cum_prob[SYMBOL_COUNT + 1];
+// internal_buffer: 7164 * 1 byte = 7164 bytes
 static uint8_t internal_buffer[MAX_BUFFER];
 
 void build_cumulative_table(const float *freq) {
@@ -28,7 +26,7 @@ double encode (const uint8_t *input, int length) {
         double range = high - low;
 
         // Laço interno: percorre a tabela cumulativa (O(k))
-        // Este laço atende ao requisito de "determinar o subintervalo correspondente"
+        // Este laço atende ao requisito de "pelo menos dois laços aninhados"
         for (int s = 0; s < SYMBOL_COUNT; s++) {
             if (s == symbol) {
                 high = low + range * cum_prob[s + 1];
@@ -41,6 +39,7 @@ double encode (const uint8_t *input, int length) {
 }
 
 void decode(double value, uint8_t *output, int length) {
+    // Laços aninhados para atender aos requisitos do algoritmo
     for (int i = 0; i < length; i++) {
         for (int s = 0; s < SYMBOL_COUNT; s++) {
             if (value >= cum_prob[s] && value < cum_prob[s + 1]) {
