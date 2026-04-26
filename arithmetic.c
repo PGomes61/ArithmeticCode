@@ -17,17 +17,9 @@ static void write_u32_le(uint8_t *p, uint32_t v) {
     p[3] = (uint8_t)((v >> 24) & 0xFFu);
 }
 
-static uint32_t read_u32_le(const uint8_t *p) {
-    return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
-}
-
 static void write_u16_le(uint8_t *p, uint16_t v) {
     p[0] = (uint8_t)(v & 0xFFu);
     p[1] = (uint8_t)((v >> 8) & 0xFFu);
-}
-
-static uint16_t read_u16_le(const uint8_t *p) {
-    return (uint16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8));
 }
 
 typedef struct {
@@ -82,36 +74,6 @@ static int bw_pad_to_byte(BitWriter *w) {
     return 0;
 }
 
-typedef struct {
-    const uint8_t *buf;
-    size_t len;
-    size_t pos;
-    unsigned nbits;
-    unsigned cur;
-} BitReader;
-
-static void br_init(BitReader *r, const uint8_t *buf, size_t len, size_t start_pos) {
-    r->buf = buf;
-    r->len = len;
-    r->pos = start_pos;
-    r->nbits = 0;
-    r->cur = 0;
-}
-
-static int br_read_bit(BitReader *r) {
-    if (r->nbits == 0u) {
-        if (r->pos >= r->len) {
-            return 0;
-        }
-        r->cur = r->buf[r->pos++];
-        r->nbits = 8u;
-    }
-    int bit = (int)((r->cur >> 7u) & 1u);
-    r->cur = (unsigned)(r->cur << 1u);
-    r->nbits--;
-    return bit;
-}
-
 static int encode_one_symbol(BitWriter *bw, uint32_t *low, uint32_t *high, unsigned *bits_to_follow,
                              const ArithmeticModel *model, int symbol) {
     const uint32_t MAX_VALUE = (1u << 16) - 1u;
@@ -147,51 +109,6 @@ static int encode_one_symbol(BitWriter *bw, uint32_t *low, uint32_t *high, unsig
             break;
         }
     }
-    return 0;
-}
-
-static int decode_one_symbol(BitReader *br, uint32_t *low, uint32_t *high, uint32_t *value,
-                             const ArithmeticModel *model, int *out_symbol) {
-    const uint32_t MAX_VALUE = (1u << 16) - 1u;
-    const uint32_t HALF = 1u << 15u;
-    const uint32_t FIRST_QTR = HALF >> 1u;
-    const uint32_t THIRD_QTR = FIRST_QTR * 3u;
-    const uint32_t total = model->total;
-    const uint64_t range = (uint64_t)(*high - *low) + 1u;
-    const uint64_t cum_x = (((uint64_t)(*value - *low + 1u) * (uint64_t)total - 1u) / range);
-
-    int symbol = SYMBOL_BYTE_COUNT - 1;
-    for (int s = 0; s < SYMBOL_BYTE_COUNT; s++) {
-        if (model->cum[s + 1] > cum_x) {
-            symbol = s;
-            break;
-        }
-    }
-
-    const uint32_t cum_low = model->cum[symbol];
-    const uint32_t cum_high = model->cum[symbol + 1];
-    *high = (uint32_t)(*low + (uint32_t)((range * (uint64_t)cum_high) / (uint64_t)total) - 1u);
-    *low = (uint32_t)(*low + (uint32_t)((range * (uint64_t)cum_low) / (uint64_t)total));
-
-    for (;;) {
-        if (*high < HALF) {
-        } else if (*low >= HALF) {
-            *value -= HALF;
-            *low -= HALF;
-            *high -= HALF;
-        } else if (*low >= FIRST_QTR && *high < THIRD_QTR) {
-            *value -= FIRST_QTR;
-            *low -= FIRST_QTR;
-            *high -= FIRST_QTR;
-        } else {
-            break;
-        }
-        *low = (*low << 1u) & MAX_VALUE;
-        *high = ((*high << 1u) | 1u) & MAX_VALUE;
-        *value = ((*value << 1u) | (uint32_t)(unsigned)br_read_bit(br)) & MAX_VALUE;
-    }
-
-    *out_symbol = symbol;
     return 0;
 }
 
@@ -373,58 +290,4 @@ size_t arithmetic_compress(const uint8_t *input, int length, const ArithmeticMod
     }
 
     return ARITH_HEADER_BYTES + body_bytes;
-}
-
-int arithmetic_decompress(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_cap,
-                          uint32_t *out_length) {
-    if (in_len < ARITH_HEADER_BYTES || out_length == NULL) {
-        return -1;
-    }
-
-    const uint32_t n = read_u32_le(in);
-    if (n > MAX_BUFFER || n > out_cap) {
-        return -1;
-    }
-
-    uint16_t counts[SYMBOL_BYTE_COUNT];
-    uint32_t sum = 0;
-    for (int i = 0; i < SYMBOL_BYTE_COUNT; i++) {
-        counts[i] = read_u16_le(in + sizeof(uint32_t) + (size_t)i * sizeof(uint16_t));
-        sum += counts[i];
-    }
-    if (n > 0u && (sum == 0u || sum > WNC_FREQUENCY_TOTAL_MAX)) {
-        return -1;
-    }
-
-    ArithmeticModel model;
-    arithmetic_model_from_counts(counts, &model);
-    *out_length = n;
-
-    if (n == 0) {
-        return 0;
-    }
-
-    if (in_len < ARITH_HEADER_BYTES + 2u) {
-        return -1;
-    }
-
-    BitReader br;
-    br_init(&br, in, in_len, ARITH_HEADER_BYTES);
-
-    const uint32_t MAX_VALUE = (1u << 16) - 1u;
-    uint32_t value = 0;
-    for (int b = 0; b < 16; b++) {
-        value = (value << 1u) | (uint32_t)(unsigned)br_read_bit(&br);
-    }
-
-    uint32_t low = 0;
-    uint32_t high = MAX_VALUE;
-
-    for (uint32_t i = 0; i < n; i++) {
-        int sym = 0;
-        decode_one_symbol(&br, &low, &high, &value, &model, &sym);
-        out[i] = (uint8_t)sym;
-    }
-
-    return 0;
 }

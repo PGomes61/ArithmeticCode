@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 /**
- * Demonstração na consola: mostra o conteúdo (texto ou hex), chama codec_roundtrip
- * e imprime tamanho do pacote e status. Mesmo pipeline para qualquer tamanho de dados.
+ * Demonstração na consola: pré-visualização, compressão e verificação de reversibilidade via
+ * scripts/external_arithmetic_decode.py (executar a partir da raiz do repositório).
  */
 void run_roundtrip_demo(const char *label, const uint8_t *data, int length);
 

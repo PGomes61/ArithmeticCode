@@ -12,6 +12,9 @@
  * estáticos (ver MAX_COMPRESSED_BYTES). O cabeçalho guarda n em 32 bits (teórico até ~4 GiB).
  * O modelo WNC exige soma das frequencias escaladas <= WNC_FREQUENCY_TOTAL_MAX; mensagens
  * maiores sao aceites porque as contagens sao escaladas automaticamente.
+ *
+ * Descompressao: implementacao de referencia em scripts/external_arithmetic_decode.py (fora deste
+ * modulo C).
  */
 #define WNC_FREQUENCY_TOTAL_MAX ((1u << 14) - 1u)
 
@@ -43,8 +46,5 @@ void arithmetic_build_model_from_data(const uint8_t *data, int length, Arithmeti
 
 size_t arithmetic_compress(const uint8_t *input, int length, const ArithmeticModel *model,
                            uint8_t *out, size_t out_cap);
-
-int arithmetic_decompress(const uint8_t *in, size_t in_len, uint8_t *out, size_t out_cap,
-                          uint32_t *out_length);
 
 #endif

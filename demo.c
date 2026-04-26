@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static uint8_t s_demo_decoded[MAX_BUFFER];
-
 static int prefix_is_printable_text(const uint8_t *data, int length, int max_scan) {
     int n = length < max_scan ? length : max_scan;
     for (int i = 0; i < n; i++) {
@@ -48,19 +46,14 @@ void run_roundtrip_demo(const char *label, const uint8_t *data, int length) {
     printf("\n--- %s ---\n", label);
     print_preview(data, length);
 
-    int rc = codec_roundtrip(data, length, s_demo_decoded, sizeof(s_demo_decoded), &packed);
+    int rc = verify_reversible_with_python(data, length, &packed);
     printf("Pacote comprimido: %zu bytes (cabecalho %u bytes).\n", packed,
            (unsigned)ARITH_HEADER_BYTES);
 
     if (rc != 0) {
-        printf("Status: [ ERRO ] - codec_roundtrip codigo %d.\n", rc);
+        printf("Status: [ ERRO ] - verify_reversible_with_python codigo %d.\n", rc);
         return;
     }
 
-    if (length > 0 &&
-        prefix_is_printable_text(s_demo_decoded, length, length < 512 ? length : 512)) {
-        int show = length < 200 ? length : 200;
-        printf("Decodificado: \"%.*s\"\n", show, (const char *)s_demo_decoded);
-    }
-    printf("Status: [ OK ] - Round-trip validado.\n");
+    printf("Status: [ OK ] - Reversivel (decoder externo Python).\n");
 }

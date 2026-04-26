@@ -7,19 +7,29 @@
 void prepare_counts(const uint8_t *input, int length, uint16_t counts[SYMBOL_BYTE_COUNT]);
 
 /**
- * Unico caminho de codificacao/decodificacao: contagens -> modelo -> compress -> decompress.
- * Compara com memcmp. Retorna 0 em sucesso; -1 compressao invalida; -2 descompressao; -3 dados
- * diferentes; -4 argumentos invalidos; -5 ponteiros nulos.
+ * Comprime em memoria e confirma reversibilidade executando
+ * scripts/external_arithmetic_decode.py --verify (decoder independente).
+ * Executar a partir da raiz do repositorio. Variaveis de ambiente opcionais:
+ * PYTHON (default python3), ARITH_DECODE_SCRIPT (default scripts/external_arithmetic_decode.py).
+ * Retorna 0 em sucesso; -1 compressao invalida; -4 argumentos/tamanho; -5 input nulo;
+ * -6 ficheiros temporarios; -7 falha do script Python (nao instalado, VERIFY falhou, etc.).
  */
-int codec_roundtrip(const uint8_t *input, int length, uint8_t *decoded_out, size_t decoded_cap,
-                    size_t *packed_bytes_out);
+int verify_reversible_with_python(const uint8_t *input, int length, size_t *packed_bytes_out);
 
 void fill_demo_buffer_8k(uint8_t *buffer, int *length);
 
 /**
- * Lê até MAX_BUFFER bytes do ficheiro, comprime, descomprime e imprime o resultado no stdout.
- * Retorna 0 em sucesso, -1 se não abrir o ficheiro, -2 se compressão/descompressão falhar.
+ * Lê até MAX_BUFFER bytes do ficheiro, comprime, verifica com o decoder Python e imprime o
+ * conteúdo original no stdout.
+ * Retorna 0 em sucesso, -1 se não abrir o ficheiro, -2 se a verificação falhar.
  */
 int run_from_file(const char *path);
+
+/**
+ * Lê o ficheiro de entrada, comprime, e grava o binário bruto (cabeçalho + corpo) no ficheiro de
+ * saída. Útil para validar o formato com ferramentas externas (ex.: decoder Python).
+ * Retorna 0 em sucesso; -1 I/O entrada; -2 compressão; -3 I/O saída.
+ */
+int export_compressed_binary(const char *input_path, const char *output_path);
 
 #endif

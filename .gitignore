@@ -1,0 +1,19 @@
+# Binário e objetos de compilação
+/prog
+*.o
+
+# Símbolos de debug (macOS)
+*.dSYM/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sistema / editor
+.DS_Store
+*.swp
+*~
+
+# Ficheiros comprimidos de teste local (opcional; apaga se quiseres versionar .comp)
+# *.comp

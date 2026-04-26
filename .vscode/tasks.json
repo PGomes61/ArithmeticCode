@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-debug",
+      "type": "shell",
+      "command": "gcc",
+      "args": [
+        "-std=c99",
+        "-g",
+        "-O0",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-o",
+        "prog",
+        "main.c",
+        "arithmetic.c",
+        "utils.c",
+        "demo.c"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}

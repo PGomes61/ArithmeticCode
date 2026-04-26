@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb-dap",
+      "request": "launch",
+      "name": "Debug: prog (sem argumentos)",
+      "program": "${workspaceFolder}/prog",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build-debug"
+    },
+    {
+      "type": "lldb-dap",
+      "request": "launch",
+      "name": "Debug: prog com entrada.txt",
+      "program": "${workspaceFolder}/prog",
+      "args": ["entrada.txt"],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build-debug"
+    }
+  ]
+}
