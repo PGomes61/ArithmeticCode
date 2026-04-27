@@ -1,4 +1,4 @@
-CFLAGS = -std=c99 -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 OBJS = main.o arithmetic.o utils.o demo.o
 
 prog: $(OBJS)
