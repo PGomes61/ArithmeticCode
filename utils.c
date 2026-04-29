@@ -1,3 +1,11 @@
+/**
+ * @file utils.c
+ * @brief Implementação das rotinas em @ref utils.h (compressão, verify via Python, ficheiros).
+ *
+ * @details
+ * Buffers estáticos evitam alocação dinâmica no caminho quente de compressão e verificação.
+ */
+
 #include "utils.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -7,7 +15,16 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+/**
+ * @brief Buffer estático para o pacote comprimido antes de gravar temporários ou ficheiro final.
+ * @note Escrito por @ref verify_reversible_with_python e @ref export_compressed_binary.
+ */
 static uint8_t s_codec_compressed[MAX_COMPRESSED_BYTES];
+
+/**
+ * @brief Buffer estático para leitura de ficheiros até @ref MAX_BUFFER bytes.
+ * @note Escrito por @ref run_from_file e @ref export_compressed_binary.
+ */
 static uint8_t s_file_input[MAX_BUFFER];
 
 void prepare_counts(const uint8_t *input, int length, uint16_t counts[SYMBOL_BYTE_COUNT]) {

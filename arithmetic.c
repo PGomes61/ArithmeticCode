@@ -1,15 +1,39 @@
+/**
+ * @file arithmetic.c
+ * @brief Implementação da codificação aritmética WNC e construção do modelo (ver @ref arithmetic.h).
+ *
+ * @details
+ * Funções internas estáticas tratam de escrita little-endian, buffer de bits e um passo de
+ * codificação com renormalização. O workspace @c g_cumulative_workspace evita stack grande nas
+ * cópias intermediárias para cumulativas.
+ */
+
 #include "arithmetic.h"
 #include <string.h>
 
+/** Número de palavras de 32 bits para cópia temporária das contagens (256 símbolos). */
 #define CUM_WORK_WORDS 2048
+
+/**
+ * @brief Workspace estático para cópia das contagens antes de formar @c cum[] no modelo.
+ * @note Afetado por: @ref copy_counts_to_workspace, lido em @ref arithmetic_model_from_counts.
+ */
 static uint32_t g_cumulative_workspace[CUM_WORK_WORDS];
 
+/**
+ * @brief Copia contagens uint16 para workspace interno (promovidas para uint32).
+ * @param[in] counts Frequências por símbolo.
+ * @note Afeta: @ref g_cumulative_workspace.
+ */
 static void copy_counts_to_workspace(const uint16_t counts[SYMBOL_BYTE_COUNT]) {
     for (int i = 0; i < SYMBOL_BYTE_COUNT; i++) {
         g_cumulative_workspace[i] = counts[i];
     }
 }
 
+/**
+ * @brief Escreve uint32 em little-endian nos quatro primeiros bytes de @p p.
+ */
 static void write_u32_le(uint8_t *p, uint32_t v) {
     p[0] = (uint8_t)(v & 0xFFu);
     p[1] = (uint8_t)((v >> 8) & 0xFFu);
@@ -17,19 +41,31 @@ static void write_u32_le(uint8_t *p, uint32_t v) {
     p[3] = (uint8_t)((v >> 24) & 0xFFu);
 }
 
+/**
+ * @brief Escreve uint16 em little-endian em @p p.
+ */
 static void write_u16_le(uint8_t *p, uint16_t v) {
     p[0] = (uint8_t)(v & 0xFFu);
     p[1] = (uint8_t)((v >> 8) & 0xFFu);
 }
 
+/**
+ * @brief Estado do escritor de bits (bit packing MSB-first dentro de cada byte de saída).
+ */
 typedef struct {
-    uint8_t *buf;
-    size_t cap;
-    size_t pos;
-    unsigned nbits;
-    unsigned cur;
+    uint8_t *buf;   /**< Início do buffer de saída. */
+    size_t cap;     /**< Capacidade máxima do buffer. */
+    size_t pos;     /**< Próximo índice de byte a escrever após bytes completos. */
+    unsigned nbits; /**< Bits já acumulados no byte corrente (0–8). */
+    unsigned cur;   /**< Valor parcial do byte corrente. */
 } BitWriter;
 
+/**
+ * @brief Inicializa o escritor de bits.
+ * @param w Escritor.
+ * @param buf Buffer destino.
+ * @param cap Capacidade de @p buf.
+ */
 static void bw_init(BitWriter *w, uint8_t *buf, size_t cap) {
     w->buf = buf;
     w->cap = cap;
@@ -38,6 +74,10 @@ static void bw_init(BitWriter *w, uint8_t *buf, size_t cap) {
     w->cur = 0;
 }
 
+/**
+ * @brief Adiciona um bit ao stream; emite um byte quando acumula 8 bits.
+ * @return 0 em sucesso, -1 se o buffer exceder @p cap.
+ */
 static int bw_flush_bit(BitWriter *w, unsigned bit) {
     w->cur = (unsigned)((w->cur << 1) | (bit & 1u));
     w->nbits++;
@@ -52,6 +92,11 @@ static int bw_flush_bit(BitWriter *w, unsigned bit) {
     return 0;
 }
 
+/**
+ * @brief Emite um bit seguido de @p *bits_to_follow bits opostos (seguimento WNC).
+ * @param bits_to_follow Contador decrementado até zero durante o seguimento.
+ * @return 0 em sucesso, -1 se overflow de buffer.
+ */
 static int bw_bit_plus_follow(BitWriter *w, unsigned bit, unsigned *bits_to_follow) {
     if (bw_flush_bit(w, bit) != 0) {
         return -1;
@@ -65,6 +110,9 @@ static int bw_bit_plus_follow(BitWriter *w, unsigned bit, unsigned *bits_to_foll
     return 0;
 }
 
+/**
+ * @brief Completa o byte corrente com zeros até alinhar à fronteira de octeto.
+ */
 static int bw_pad_to_byte(BitWriter *w) {
     while (w->nbits > 0u) {
         if (bw_flush_bit(w, 0u) != 0) {
@@ -74,6 +122,16 @@ static int bw_pad_to_byte(BitWriter *w) {
     return 0;
 }
 
+/**
+ * @brief Um passo de codificação aritmética para um símbolo, com renormalização e bits emitidos.
+ * @param bw Escritor de bits.
+ * @param low,high Ponteiros ao intervalo atual [low, high] (16 bits efetivos).
+ * @param bits_to_follow Acumulador de seguimento WNC.
+ * @param model Modelo cumulativo.
+ * @param symbol Símbolo a codificar (0–255).
+ * @return 0 em sucesso, -1 se falha de buffer no escritor.
+ * @note Não altera variáveis globais do ficheiro.
+ */
 static int encode_one_symbol(BitWriter *bw, uint32_t *low, uint32_t *high, unsigned *bits_to_follow,
                              const ArithmeticModel *model, int symbol) {
     const uint32_t MAX_VALUE = (1u << 16) - 1u;

@@ -1,3 +1,8 @@
+/**
+ * @file demo.c
+ * @brief Implementação das demonstrações declaradas em @ref demo.h.
+ */
+
 #include "demo.h"
 #include "utils.h"
 #include "arithmetic.h"
@@ -5,6 +10,13 @@
 #include <stdio.h>
 #include <string.h>
 
+/**
+ * @brief Verifica se os primeiros @p max_scan bytes são majoritariamente texto imprimível.
+ * @param data Buffer de entrada.
+ * @param length Comprimento total disponível.
+ * @param max_scan Número máximo de bytes a inspecionar.
+ * @return 1 se parecer texto; 0 caso contrário.
+ */
 static int prefix_is_printable_text(const uint8_t *data, int length, int max_scan) {
     int n = length < max_scan ? length : max_scan;
     for (int i = 0; i < n; i++) {
@@ -19,6 +31,11 @@ static int prefix_is_printable_text(const uint8_t *data, int length, int max_sca
     return 1;
 }
 
+/**
+ * @brief Imprime pré-visualização: texto curto ou amostra hexadecimal.
+ * @param data Dados.
+ * @param length Comprimento.
+ */
 static void print_preview(const uint8_t *data, int length) {
     if (length <= 0) {
         printf("(vazio)\n");
