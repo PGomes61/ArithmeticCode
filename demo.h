@@ -6,6 +6,13 @@
  * Usado pelo programa principal quando não há argumentos ou para cenários de teste integrados.
  * Requer execução a partir da raiz do repositório para localizar o script Python de decode.
  *
+ * @section demo_plataforma Plataforma alvo
+ * Unix/macOS (POSIX), compilado com GCC/Clang, padrão C99 ou superior.
+ *
+ * @section demo_direitos Copyright e permissões
+ * Uso educacional no âmbito de trabalho de disciplina — Compressão Aritmética (T1).
+ * Redistribuição permitida com menção dos autores originais.
+ *
  * @author Paulo Vinícius, Pedro Lucas
  * @date 2026
  * @note Contexto: trabalho de disciplina — compressão aritmética (demonstração de round-trip).

@@ -22,7 +22,7 @@
  * redistribuição deve preservar a indicação de autoria e o contexto académico.
  * Consulte os docentes da disciplina quanto a regras específicas de entrega e citação.
  *
- * @author Paulo Vinícius, Pedro Lucas (equipa do projeto)
+ * @author Paulo Vinícius, Pedro Lucas
  * @date 2026
  * @note Contexto: documentação e implementação para disciplina (compressão aritmética / T1).
  *
@@ -87,10 +87,11 @@ void arithmetic_scale_counts_for_wnc(const uint32_t *raw_counts, int message_len
 
 /**
  * @brief Conta símbolos e aplica escalonamento WNC num único passo.
- * @param[in] data Dados de entrada.
- * @param[in] length Comprimento em octetos.
- * @param[out] counts Frequências escaladas (256 valores).
- * @note Variáveis globais do ficheiro: nenhuma.
+ * @param[in]  data    Buffer de entrada com os bytes a analisar.
+ * @param[in]  length  Número de octetos em @p data.
+ * @param[out] counts  Vetor de 256 frequências escalonadas, pronto para @ref arithmetic_model_from_counts.
+ * @note Variáveis globais do ficheiro: nenhuma. Combina internamente
+ *       @ref arithmetic_count_raw e @ref arithmetic_scale_counts_for_wnc.
  */
 void arithmetic_count_symbols(const uint8_t *data, int length, uint16_t counts[SYMBOL_BYTE_COUNT]);
 
@@ -105,9 +106,11 @@ void arithmetic_model_from_counts(const uint16_t counts[SYMBOL_BYTE_COUNT], Arit
 
 /**
  * @brief Deriva o modelo a partir dos dados (contagem + escalonamento + cumulativas).
- * @param[in] data Mensagem de entrada.
- * @param[in] length Comprimento.
- * @param[out] model Modelo pronto para @ref arithmetic_compress.
+ * @param[in]  data    Buffer de entrada com os bytes a processar.
+ * @param[in]  length  Número de octetos em @p data; deve ser ≥ 0 e ≤ @ref MAX_BUFFER.
+ * @param[out] model   Modelo cumulativo preenchido e pronto para @ref arithmetic_compress.
+ * @note Variáveis globais do módulo @c arithmetic.c: workspace interno (@c g_cumulative_workspace)
+ *       afetado indiretamente via @ref arithmetic_model_from_counts.
  */
 void arithmetic_build_model_from_data(const uint8_t *data, int length, ArithmeticModel *model);
 

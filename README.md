@@ -1,8 +1,18 @@
 # Codificação aritmética (WNC) — T1
 
-**Guia passo a passo para principiantes (o que é “símbolo”, fluxo completo, ficheiro a ficheiro):** [GUIA_LEIGO.md](GUIA_LEIGO.md)
+**Autores:** Paulo Vinícius & Pedro Lucas  
+**Data:** 2026  
+**Contexto:** Trabalho de disciplina — Compressão de Dados / Sistemas Embarcados  
+**Plataforma alvo:** Unix/macOS (POSIX), GCC/Clang, padrão C99, sem alocação dinâmica  
+**Copyright:** Uso educacional. Redistribuição permitida com menção dos autores.
+
+---
+
+## Visão geral
 
 Projeto em **C99** sem **recursão** e sem **alocação dinâmica** (`malloc`/`free`). O núcleo implementa codificação aritmética em **ponto fixo de 16 bits** com **renormalização** no estilo **Witten–Neal–Cleary (WNC)**: a saída é um **bitstream** (bytes) com cabeçalho, não um único `double` no intervalo `[0,1)` (que colapsa após ~16 símbolos por precisão finita).
+
+**Guia passo a passo para principiantes:** [GUIA_LEIGO.md](GUIA_LEIGO.md)
 
 ---
 

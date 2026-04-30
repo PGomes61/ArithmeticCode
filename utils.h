@@ -56,8 +56,10 @@ int verify_reversible_with_python(const uint8_t *input, int length, size_t *pack
 
 /**
  * @brief Preenche @p buffer com texto repetido até preencher @ref MAX_BUFFER octetos.
- * @param[out] buffer Destino (tamanho ≥ @ref MAX_BUFFER).
- * @param[out] length Define para @ref MAX_BUFFER.
+ * @param[out] buffer Destino com capacidade mínima de @ref MAX_BUFFER bytes;
+ *                    deve ter sido alocado pelo chamador.
+ * @param[out] length Definido para @ref MAX_BUFFER ao retornar.
+ * @note Não afeta variáveis globais deste módulo.
  */
 void fill_demo_buffer_8k(uint8_t *buffer, int *length);
 
@@ -71,9 +73,13 @@ int run_from_file(const char *path);
 
 /**
  * @brief Lê entrada, comprime e grava o binário completo (cabeçalho + corpo) no ficheiro de saída.
- * @param[in] input_path Ficheiro fonte.
- * @param[in] output_path Ficheiro comprimido gerado.
- * @return 0 sucesso; -1 leitura; -2 compressão; -3 escrita.
+ * @param[in] input_path  Caminho do ficheiro fonte (leitura binária).
+ * @param[in] output_path Caminho do ficheiro comprimido a gerar (escrita binária).
+ * @return  0 em sucesso.
+ * @return -1 se @p input_path não puder ser aberto.
+ * @return -2 se a compressão falhar (entrada não-vazia mas packed == 0).
+ * @return -3 se @p output_path não puder ser aberto, a escrita for incompleta ou o fclose falhar.
+ * @note Afeta buffers estáticos @c s_file_input e @c s_codec_compressed em @c utils.c.
  */
 int export_compressed_binary(const char *input_path, const char *output_path);
 
