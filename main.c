@@ -1,12 +1,12 @@
 /**
  * @file main.c
- * @brief Ponto de entrada: compressão aritmética, demonstrações e modo ficheiro.
+ * @brief Ponto de entrada: compressão aritmética, demonstrações e modo arquivo.
  *
  * @section main_visao Visão geral da aplicação
  * Programa de linha de comandos que comprime mensagens em memória com codificação aritmética
  * WNC (implementação em @c arithmetic.c), opcionalmente valida a reversibilidade com um
  * decoder de referência em Python, e permite gravar o binário comprimido ou processar um
- * ficheiro de entrada.
+ * arquivo de entrada.
  *
  * @section main_como_usar Como usar (help)
  * @verbatim
@@ -18,7 +18,7 @@
        → Sem argumentos: corre demonstrações integradas e chama o verify Python (requer
          python3 e scripts/external_arithmetic_decode.py na raiz do projeto).
 
-     ./prog caminho/para/ficheiro.bin
+     ./prog caminho/para/arquivo.bin
        → Lê até MAX_BUFFER bytes, comprime, verifica com Python, imprime o conteúdo original.
 
      ./prog --dump-compressed entrada.bin saida.comp
@@ -26,8 +26,8 @@
 @endverbatim
  *
  * @section main_io Entrada e saída
- * - Entrada: argumentos da linha de comandos; dados lidos de ficheiros como sequência de octetos.
- * - Saída: texto em @c stdout/@c stderr; ficheiro binário no modo @c --dump-compressed.
+ * - Entrada: argumentos da linha de comandos; dados lidos de arquivos como sequência de bytes.
+ * - Saída: texto em @c stdout/@c stderr; arquivo binário no modo @c --dump-compressed.
  *
  * @section main_plataforma Plataforma alvo
  * Unix/macOS (POSIX). O verify Python usa @c mkstemp em @c utils.c.
@@ -37,7 +37,7 @@
  *
  * @author Paulo Vinícius, Pedro Lucas
  * @date 2026
- * @note Trabalho académico — compressão aritmética (T1).
+ * @note Trabalho acadêmico — compressão aritmética (T1).
  */
 
 #include <stdio.h>
@@ -86,11 +86,11 @@ static void run_builtin_demo(void) {
 }
 
 /**
- * @brief Função principal: despacha modos demo, ficheiro único ou export comprimido.
+ * @brief Função principal: despacha modos demo, arquivo único ou export comprimido.
  * @param argc Número de argumentos (incluindo o nome do programa).
  * @param argv argv[0] nome do executável; ver secção "Como usar" para os restantes.
  * @return 0 em sucesso; 1 em erro de processamento ou compressão/verify.
- * @note Não mantém estado global próprio além de buffers estáticos deste ficheiro em @ref run_builtin_demo.
+ * @note Não mantém estado global próprio além de buffers estáticos deste arquivo em @ref run_builtin_demo.
  */
 int main(int argc, char **argv) {
     if (argc == 4 && strcmp(argv[1], "--dump-compressed") == 0) {
@@ -107,10 +107,10 @@ int main(int argc, char **argv) {
         return rc != 0 ? 1 : 0;
     }
 
-    printf("Uso: %s [caminho_do_ficheiro]\n", argv[0]);
+    printf("Uso: %s [caminho_do_arquivo]\n", argv[0]);
     printf("      %s --dump-compressed entrada.bin saida.comp\n", argv[0]);
     printf("Sem argumentos: demos de reversibilidade (Python) no diretorio atual.\n");
-    printf("Com ficheiro: le ate %d bytes, comprime, verifica com Python, imprime original.\n\n",
+    printf("Com arquivo: le ate %d bytes, comprime, verifica com Python, imprime original.\n\n",
            MAX_BUFFER);
 
     run_builtin_demo();

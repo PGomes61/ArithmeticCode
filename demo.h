@@ -26,8 +26,8 @@
 /**
  * @brief Executa um caso de demonstração: pré-visualiza dados, comprime e verifica com Python.
  * @param[in] label Título do caso (texto livre para a consola).
- * @param[in] data Ponteiro para os octetos de teste.
- * @param[in] length Número de octetos.
+ * @param[in] data Ponteiro para os bytes de teste.
+ * @param[in] length Número de bytes.
  * @note Delegado a @ref verify_reversible_with_python; não altera variáveis globais neste módulo.
  */
 void run_roundtrip_demo(const char *label, const uint8_t *data, int length);

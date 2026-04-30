@@ -1,11 +1,11 @@
 /**
  * @file utils.c
- * @brief Implementação das rotinas em @ref utils.h (compressão, verify via Python, ficheiros).
+ * @brief Implementação das rotinas em @ref utils.h (compressão, verify via Python, arquivos).
  *
  * @details
  * Buffers estáticos evitam alocação dinâmica no caminho quente de compressão e verificação.
  * As principais responsabilidades deste módulo são: comprimir dados em memória, verificar
- * reversibilidade chamando o decoder Python em processo separado, ler ficheiros de entrada e
+ * reversibilidade chamando o decoder Python em processo separado, ler arquivos de entrada e
  * exportar o binário comprimido.
  *
  * @section utils_copyright Copyright e permissões
@@ -18,7 +18,7 @@
  *
  * @author Paulo Vinícius, Pedro Lucas
  * @date 2026
- * @note Trabalho académico — disciplina de Sistemas Embarcados / Compressão de Dados.
+ * @note Trabalho acadêmico — disciplina de Sistemas Embarcados.
  */
 
 #include "utils.h"
@@ -31,25 +31,25 @@
 #include <sys/wait.h>
 
 /**
- * @brief Buffer estático para o pacote comprimido antes de gravar temporários ou ficheiro final.
+ * @brief Buffer estático para o pacote comprimido antes de gravar temporários ou arquivo final.
  * @note Escrito por @ref verify_reversible_with_python e @ref export_compressed_binary.
  */
 static uint8_t s_codec_compressed[MAX_COMPRESSED_BYTES];
 
 /**
- * @brief Buffer estático para leitura de ficheiros até @ref MAX_BUFFER bytes.
+ * @brief Buffer estático para leitura de arquivos até @ref MAX_BUFFER bytes.
  * @note Escrito por @ref run_from_file e @ref export_compressed_binary.
  */
 static uint8_t s_file_input[MAX_BUFFER];
 
 /**
  * @brief Calcula as frequências escalonadas WNC de @p input e armazena em @p counts.
- * @details Atalho conveniente que chama @ref arithmetic_count_symbols directamente.
+ * @details Atalho conveniente que chama @ref arithmetic_count_symbols diretamente.
  *          Útil quando se pretende inspecionar as contagens antes de construir o modelo.
  * @param[in]  input  Buffer de dados de entrada.
  * @param[in]  length Número de bytes a analisar.
  * @param[out] counts Vetor de 256 frequências escalonadas resultantes.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 void prepare_counts(const uint8_t *input, int length, uint16_t counts[SYMBOL_BYTE_COUNT]) {
     arithmetic_count_symbols(input, length, counts);
@@ -57,7 +57,7 @@ void prepare_counts(const uint8_t *input, int length, uint16_t counts[SYMBOL_BYT
 
 /**
  * @brief Comprime @p input em memória e verifica a reversibilidade com o decoder Python externo.
- * @details Constrói o modelo, comprime com @ref arithmetic_compress, grava dois ficheiros
+ * @details Constrói o modelo, comprime com @ref arithmetic_compress, grava dois arquivos
  *          temporários em @c /tmp (comprimido e original), e invoca o script Python com
  *          @c --verify. Os temporários são removidos após a execução independentemente do resultado.
  *          O executável Python e o caminho do script podem ser sobrescritos pelas variáveis de
@@ -162,12 +162,12 @@ int verify_reversible_with_python(const uint8_t *input, int length, size_t *pack
 }
 
 /**
- * @brief Preenche @p buffer com uma frase repetida até atingir exactamente @c MAX_BUFFER bytes.
+ * @brief Preenche @p buffer com uma frase repetida até atingir exatamente @c MAX_BUFFER bytes.
  * @details Usado para gerar um caso de teste grande com distribuição de símbolos não uniforme
  *          e altamente comprimível. A frase usada é uma string literal interna à função.
  * @param[out] buffer Buffer de destino com capacidade mínima de @c MAX_BUFFER bytes.
  * @param[out] length Recebe o valor @c MAX_BUFFER ao retornar.
- * @note Não afeta variáveis globais deste ficheiro. @p buffer deve ter sido alocado pelo chamador.
+ * @note Não afeta variáveis globais deste arquivo. @p buffer deve ter sido alocado pelo chamador.
  */
 void fill_demo_buffer_8k(uint8_t *buffer, int *length) {
     const char *phrase = "Compressao Aritmetica com renormalizacao (WNC). ";
@@ -185,13 +185,13 @@ void fill_demo_buffer_8k(uint8_t *buffer, int *length) {
 }
 
 /**
- * @brief Lê um ficheiro binário, comprime e verifica reversibilidade com o decoder Python.
- * @details Lê até @c MAX_BUFFER bytes de @p path. Se o ficheiro for maior, emite aviso em
+ * @brief Lê um arquivo binário, comprime e verifica reversibilidade com o decoder Python.
+ * @details Lê até @c MAX_BUFFER bytes de @p path. Se o arquivo for maior, emite aviso em
  *          @c stderr e processa apenas os primeiros @c MAX_BUFFER bytes. Após compressão e
  *          verificação bem-sucedida, imprime o conteúdo original em @c stdout.
- * @param[in] path Caminho para o ficheiro de entrada (modo binário).
+ * @param[in] path Caminho para o arquivo de entrada (modo binário).
  * @return  0 em sucesso.
- * @return -1 se o ficheiro não puder ser aberto.
+ * @return -1 se o arquivo não puder ser aberto.
  * @return -2 se @ref verify_reversible_with_python falhar.
  * @note Afeta: @ref s_file_input (sobrescrito com o conteúdo lido) e
  *       @ref s_codec_compressed (via @ref verify_reversible_with_python).
@@ -210,7 +210,7 @@ int run_from_file(const char *path) {
 
     if (more != 0u) {
         fprintf(stderr,
-                "Aviso: ficheiro maior que MAX_BUFFER (%u bytes); apenas os primeiros %zu bytes "
+                "Aviso: arquivo maior que MAX_BUFFER (%u bytes); apenas os primeiros %zu bytes "
                 "foram lidos.\n",
                 (unsigned)MAX_BUFFER, n);
     }
@@ -243,8 +243,8 @@ int run_from_file(const char *path) {
  * @details Lê até @c MAX_BUFFER bytes de @p input_path (com aviso se truncado), constrói o
  *          modelo, comprime com @ref arithmetic_compress e grava o resultado em @p output_path.
  *          Não realiza verificação Python — use @ref verify_reversible_with_python separadamente.
- * @param[in] input_path  Caminho do ficheiro de entrada (modo binário).
- * @param[in] output_path Caminho do ficheiro de saída onde o pacote comprimido será gravado.
+ * @param[in] input_path  Caminho do arquivo de entrada (modo binário).
+ * @param[in] output_path Caminho do arquivo de saída onde o pacote comprimido será gravado.
  * @return  0 em sucesso.
  * @return -1 se @p input_path não puder ser aberto.
  * @return -2 se a compressão falhar (entrada não-vazia mas packed == 0).
@@ -266,7 +266,7 @@ int export_compressed_binary(const char *input_path, const char *output_path) {
 
     if (more != 0u) {
         fprintf(stderr,
-                "Aviso: ficheiro maior que MAX_BUFFER (%u bytes); apenas os primeiros %zu bytes "
+                "Aviso: arquivo maior que MAX_BUFFER (%u bytes); apenas os primeiros %zu bytes "
                 "foram comprimidos.\n",
                 (unsigned)MAX_BUFFER, n);
     }

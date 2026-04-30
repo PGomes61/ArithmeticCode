@@ -1,24 +1,24 @@
 /**
  * @file utils.h
- * @brief Utilitários de demonstração: compressão, verificação com decoder externo (Python) e I/O de ficheiros.
+ * @brief Utilitários de demonstração: compressão, verificação com decoder externo (Python) e I/O de arquivos.
  *
  * @section utils_visao Visão geral
  * Este módulo orquestra o uso de @ref arithmetic_compress após construir o modelo a partir dos
  * dados, invoca opcionalmente o script Python de verificação de reversibilidade, e oferece
- * fluxos para processar ficheiros na linha de comandos.
+ * fluxos para processar arquivos na linha de comandos.
  *
  * @section utils_entrada_saida Entrada e saída
- * - Entrada: bytes em memória ou caminhos de ficheiro (leitura binária até @ref MAX_BUFFER).
- * - Saída: mensagens em consola, ficheiro comprimido bruto (modo export), ou apenas estado de
+ * - Entrada: bytes em memória ou caminhos de arquivo (leitura binária até @ref MAX_BUFFER).
+ * - Saída: mensagens em consola, arquivo comprimido bruto (modo export), ou apenas estado de
  *   verificação (sucesso/erro).
  *
  * @section utils_ambiente Variáveis de ambiente (opcionais)
- * - @c PYTHON — interpretador (predefinição: @c python3).
- * - @c ARITH_DECODE_SCRIPT — caminho do decoder (predefinição: @c scripts/external_arithmetic_decode.py).
+ * - @c PYTHON — interpretador (padrão: @c python3).
+ * - @c ARITH_DECODE_SCRIPT — caminho do decoder (padrão: @c scripts/external_arithmetic_decode.py).
  *
  * @section utils_plataforma Plataforma
  * Unix/POSIX (@c unistd.h, @c mkstemp, @c fork/exec implícito via @c system). Para Windows seria
- * necessário adaptar ficheiros temporários e invocação do Python.
+ * necessário adaptar arquivos temporários e invocação do Python.
  *
  * @section utils_direitos Copyright
  * Uso educacional no âmbito da disciplina; ver cabeçalho do projeto em @ref arithmetic.h.
@@ -36,7 +36,7 @@
 /**
  * @brief Prepara o vetor de contagens escaladas WNC a partir da mensagem (wrapper simples).
  * @param[in] input Dados de entrada.
- * @param[in] length Comprimento em octetos.
+ * @param[in] length Comprimento em bytes.
  * @param[out] counts Saída com 256 contagens escaladas.
  * @note Não altera variáveis globais deste módulo (apenas chama @ref arithmetic_count_symbols).
  */
@@ -50,12 +50,12 @@ void prepare_counts(const uint8_t *input, int length, uint16_t counts[SYMBOL_BYT
  * @return 0 sucesso; -1 falha de compressão; -4 tamanho inválido; -5 @p input NULL;
  *         -6 temporários/comando; -7 falha do script Python ou verify.
  * @note Afeta buffers estáticos @c s_codec_compressed e @c s_file_input no @c utils.c (escrita
- *       temporária para ficheiros auxiliares na verificação).
+ *       temporária para arquivos auxiliares na verificação).
  */
 int verify_reversible_with_python(const uint8_t *input, int length, size_t *packed_bytes_out);
 
 /**
- * @brief Preenche @p buffer com texto repetido até preencher @ref MAX_BUFFER octetos.
+ * @brief Preenche @p buffer com texto repetido até preencher @ref MAX_BUFFER bytes.
  * @param[out] buffer Destino com capacidade mínima de @ref MAX_BUFFER bytes;
  *                    deve ter sido alocado pelo chamador.
  * @param[out] length Definido para @ref MAX_BUFFER ao retornar.
@@ -64,17 +64,17 @@ int verify_reversible_with_python(const uint8_t *input, int length, size_t *pack
 void fill_demo_buffer_8k(uint8_t *buffer, int *length);
 
 /**
- * @brief Lê ficheiro, comprime, verifica com Python e imprime o conteúdo original no stdout.
- * @param[in] path Caminho do ficheiro em modo binário.
+ * @brief Lê arquivo, comprime, verifica com Python e imprime o conteúdo original no stdout.
+ * @param[in] path Caminho do arquivo em modo binário.
  * @return 0 sucesso; -1 erro ao abrir; -2 falha na verificação.
  * @note Usa o buffer estático @c s_file_input e @c s_codec_compressed em @c utils.c.
  */
 int run_from_file(const char *path);
 
 /**
- * @brief Lê entrada, comprime e grava o binário completo (cabeçalho + corpo) no ficheiro de saída.
- * @param[in] input_path  Caminho do ficheiro fonte (leitura binária).
- * @param[in] output_path Caminho do ficheiro comprimido a gerar (escrita binária).
+ * @brief Lê entrada, comprime e grava o binário completo (cabeçalho + corpo) no arquivo de saída.
+ * @param[in] input_path  Caminho do arquivo fonte (leitura binária).
+ * @param[in] output_path Caminho do arquivo comprimido a gerar (escrita binária).
  * @return  0 em sucesso.
  * @return -1 se @p input_path não puder ser aberto.
  * @return -2 se a compressão falhar (entrada não-vazia mas packed == 0).

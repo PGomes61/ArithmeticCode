@@ -16,7 +16,7 @@
  *
  * @author Paulo Vinícius, Pedro Lucas
  * @date 2026
- * @note Trabalho acadêmico — disciplina de Sistemas Embarcadoss.
+ * @note Trabalho acadêmico — disciplina de Sistemas Embarcados.
  */
 
 #include "demo.h"
@@ -53,7 +53,7 @@ static int prefix_is_printable_text(const uint8_t *data, int length, int max_sca
  *          exibe até 200 caracteres como string; caso contrário, exibe até 32 bytes em hex.
  * @param[in] data   Buffer com os dados a pré-visualizar.
  * @param[in] length Número de bytes em @p data.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 static void print_preview(const uint8_t *data, int length) {
     if (length <= 0) {
@@ -85,7 +85,7 @@ static void print_preview(const uint8_t *data, int length) {
  * @param[in] label  Rótulo identificador do caso de teste, exibido no cabeçalho da saída.
  * @param[in] data   Buffer com os dados a comprimir e verificar.
  * @param[in] length Número de bytes em @p data.
- * @note Não afeta variáveis globais deste ficheiro. Variáveis globais em @c utils.c
+ * @note Não afeta variáveis globais deste arquivo. Variáveis globais em @c utils.c
  *       (@c s_codec_compressed, @c s_file_input) são afetadas indiretamente via
  *       @ref verify_reversible_with_python.
  */

@@ -16,7 +16,7 @@
  *
  * @author Paulo Vinícius, Pedro Lucas
  * @date 2026
- * @note Trabalho académico — disciplina de Sistemas Embarcados.
+ * @note Trabalho acadêmico — disciplina de Sistemas Embarcados.
  */
 
 #include "arithmetic.h"
@@ -46,7 +46,7 @@ static void copy_counts_to_workspace(const uint16_t counts[SYMBOL_BYTE_COUNT]) {
  * @brief Escreve uint32 em little-endian nos quatro primeiros bytes de @p p.
  * @param[out] p Ponteiro ao buffer de destino; deve ter pelo menos 4 bytes disponíveis.
  * @param[in]  v Valor de 32 bits a escrever.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 static void write_u32_le(uint8_t *p, uint32_t v) {
     p[0] = (uint8_t)(v & 0xFFu);
@@ -59,7 +59,7 @@ static void write_u32_le(uint8_t *p, uint32_t v) {
  * @brief Escreve uint16 em little-endian em @p p.
  * @param[out] p Ponteiro ao buffer de destino; deve ter pelo menos 2 bytes disponíveis.
  * @param[in]  v Valor de 16 bits a escrever.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 static void write_u16_le(uint8_t *p, uint16_t v) {
     p[0] = (uint8_t)(v & 0xFFu);
@@ -96,7 +96,7 @@ static void bw_init(BitWriter *w, uint8_t *buf, size_t cap) {
  * @param[in,out] w   Escritor de bits cujo estado é atualizado.
  * @param[in]     bit Bit a inserir (apenas o bit menos significativo é usado).
  * @return 0 em sucesso, -1 se o buffer exceder @c cap.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 static int bw_flush_bit(BitWriter *w, unsigned bit) {
     w->cur = (unsigned)((w->cur << 1) | (bit & 1u));
@@ -118,7 +118,7 @@ static int bw_flush_bit(BitWriter *w, unsigned bit) {
  * @param[in]     bit            Bit principal a emitir (0 ou 1).
  * @param[in,out] bits_to_follow Contador de bits pendentes; decrementado até zero durante o seguimento.
  * @return 0 em sucesso, -1 se overflow de buffer.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 static int bw_bit_plus_follow(BitWriter *w, unsigned bit, unsigned *bits_to_follow) {
     if (bw_flush_bit(w, bit) != 0) {
@@ -134,10 +134,10 @@ static int bw_bit_plus_follow(BitWriter *w, unsigned bit, unsigned *bits_to_foll
 }
 
 /**
- * @brief Completa o byte corrente com zeros até alinhar à fronteira de octeto.
+ * @brief Completa o byte corrente com zeros até alinhar à fronteira de byte.
  * @param[in,out] w Escritor de bits cujo byte parcial será preenchido com zeros.
  * @return 0 em sucesso, -1 se overflow de buffer durante o preenchimento.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 static int bw_pad_to_byte(BitWriter *w) {
     while (w->nbits > 0u) {
@@ -156,7 +156,7 @@ static int bw_pad_to_byte(BitWriter *w) {
  * @param model Modelo cumulativo.
  * @param symbol Símbolo a codificar (0–255).
  * @return 0 em sucesso, -1 se falha de buffer no escritor.
- * @note Não altera variáveis globais do ficheiro.
+ * @note Não altera variáveis globais do arquivo.
  */
 static int encode_one_symbol(BitWriter *bw, uint32_t *low, uint32_t *high, unsigned *bits_to_follow,
                              const ArithmeticModel *model, int symbol) {
@@ -201,7 +201,7 @@ static int encode_one_symbol(BitWriter *bw, uint32_t *low, uint32_t *high, unsig
  * @param[in]  data       Buffer de entrada com os dados a analisar.
  * @param[in]  length     Número de bytes a processar.
  * @param[out] raw_counts Vetor de 256 posições preenchido com a frequência absoluta de cada símbolo.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 void arithmetic_count_raw(const uint8_t *data, int length, uint32_t raw_counts[SYMBOL_BYTE_COUNT]) {
     for (int i = 0; i < SYMBOL_BYTE_COUNT; i++) {
@@ -214,14 +214,14 @@ void arithmetic_count_raw(const uint8_t *data, int length, uint32_t raw_counts[S
 
 /**
  * @brief Escala as contagens brutas para que a soma não exceda @c WNC_FREQUENCY_TOTAL_MAX.
- * @details Se a mensagem couber dentro do limite WNC, as contagens são copiadas directamente.
+ * @details Se a mensagem couber dentro do limite WNC, as contagens são copiadas diretamente.
  *          Caso contrário, cada contagem é proporcionalmente reduzida; símbolos com peso > 0
  *          recebem no mínimo 1 para preservar a distinguibilidade, e ajustes incrementais
- *          corrigem erros de arredondamento para garantir que a soma seja exactamente @c WNC_FREQUENCY_TOTAL_MAX.
+ *          corrigem erros de arredondamento para garantir que a soma seja exatamente @c WNC_FREQUENCY_TOTAL_MAX.
  * @param[in]  raw_counts     Frequências absolutas (256 símbolos), obtidas por @ref arithmetic_count_raw.
  * @param[in]  message_length Comprimento original da mensagem em bytes; usado como divisor.
  * @param[out] scaled_counts  Frequências escalonadas prontas para @ref arithmetic_model_from_counts.
- * @note Não afeta variáveis globais deste ficheiro.
+ * @note Não afeta variáveis globais deste arquivo.
  */
 void arithmetic_scale_counts_for_wnc(const uint32_t *raw_counts, int message_length,
                                      uint16_t scaled_counts[SYMBOL_BYTE_COUNT]) {
@@ -310,7 +310,7 @@ void arithmetic_scale_counts_for_wnc(const uint32_t *raw_counts, int message_len
  * @param[in]  length  Número de bytes a processar.
  * @param[out] counts  Frequências escalonadas (prontas para o modelo), 256 entradas.
  * @note Internamente chama @ref arithmetic_count_raw e @ref arithmetic_scale_counts_for_wnc.
- *       Não afeta variáveis globais deste ficheiro.
+ *       Não afeta variáveis globais deste arquivo.
  */
 void arithmetic_count_symbols(const uint8_t *data, int length, uint16_t counts[SYMBOL_BYTE_COUNT]) {
     uint32_t raw[SYMBOL_BYTE_COUNT];
@@ -319,7 +319,7 @@ void arithmetic_count_symbols(const uint8_t *data, int length, uint16_t counts[S
 }
 
 /**
- * @brief Constrói o modelo aritmético directamente a partir dos dados de entrada.
+ * @brief Constrói o modelo aritmético diretamente a partir dos dados de entrada.
  * @details Conveniência que encadeia @ref arithmetic_count_symbols e @ref arithmetic_model_from_counts.
  * @param[in]  data   Buffer de entrada.
  * @param[in]  length Número de bytes a processar.
